@@ -456,7 +456,7 @@ def run_experiment_fact_selection(
     compare_error = None
     try:
         compare_data = post_with_retry(url, "/compare", compare_body, timeout=180)
-    except RuntimeError as exc:
+    except Exception as exc:
         compare_error = exc
     compare_time = time.monotonic() - t0
     record["timing"] = {"probe_seconds": probe_time, "compare_seconds": compare_time}
@@ -548,7 +548,7 @@ def run_experiment_fact_optimization(
         edit_error = None
         try:
             edit_data = post_with_retry(url, "/edit", edit_body, timeout=120)
-        except RuntimeError as exc:
+        except Exception as exc:
             edit_error = exc
         duration = time.monotonic() - t0
         try:

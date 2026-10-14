@@ -233,6 +233,22 @@ class BenchmarkIntegrityTests(unittest.TestCase):
         self.assertEqual(probing.call_count, 2)
         self.assertTrue(caught.exception.record["rollback_verified"])
 
+    def test_failed_compare_catches_non_runtime_exceptions_and_checks_restoration(self):
+        fact = benchmark_manifest()["eval_facts"][0]
+        signals = [{"layer": i, "cosine_similarity": 0.5} for i in range(48)]
+        with (
+            patch.object(
+                experiments, "run_probe", return_value={"layer_signals": signals}
+            ) as probing,
+            patch.object(
+                experiments, "post_with_retry", side_effect=ValueError("malformed response")
+            ),
+            self.assertRaises(experiments.ExperimentFailure) as caught,
+        ):
+            experiments.run_experiment_fact_selection(fact, "http://fixture")
+        self.assertEqual(probing.call_count, 2)
+        self.assertTrue(caught.exception.record["rollback_verified"])
+
     def test_missing_generation_differs_from_measured_empty_generation(self):
         self.assertIsNone(experiments.extract_scheme_record({}, [17])["has_repetition"])
         self.assertFalse(
